@@ -19,6 +19,19 @@ sudo git clone https://github.com/yourusername/netbox.bot.git
 echo "Setting permissions..."
 sudo chown -R www-data:www-data /var/www/html/netbox.bot
 
+# Ask for Telegram Bot Token
+echo "Please enter your Telegram Bot Token:"
+read BOT_TOKEN
+
+# Ask for Telegram Admin ID
+echo "Please enter your Telegram Admin ID:"
+read ADMIN_ID
+
+# Save the token and admin ID into a config file
+echo "Saving configuration..."
+echo "BOT_TOKEN=$BOT_TOKEN" > /var/www/html/netbox.bot/config.env
+echo "ADMIN_ID=$ADMIN_ID" >> /var/www/html/netbox.bot/config.env
+
 # Restart Apache
 echo "Restarting Apache..."
 sudo systemctl restart apache2
