@@ -1,74 +1,46 @@
 <?php
-// bot.php
+$token = "6414210268:AAEL-RZiABoMzS_QY922hOQnpXcam9OgiF0"; // توکن ربات خود را اینجا وارد کنید
+$admin_id = 5691972852; // آیدی عددی ادمین را اینجا وارد کنید
 
-// تنظیمات اولیه
-$telegram_api = "https://api.telegram.org/bot<Your-Bot-Token>/";
-$chat_id = "<Your-Chat-ID>";
+$website = "https://api.telegram.org/bot".$token;
 
-// اتصال به پنل ثنایی یا علیرضا
-function getPanelConfig($panel_url, $username, $password) {
-    // اینجا باید درخواست API به پنل ثنایی یا علیرضا ارسال شود
-    // و کانفیگ لازم دریافت گردد
-    // برای مثال، از cURL برای ارتباط با API پنل استفاده می‌کنیم
-    $ch = curl_init($panel_url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, [
-        'username' => $username,
-        'password' => $password,
+$update = file_get_contents("php://input");
+$update = json_decode($update, TRUE);
+
+$chatId = $update["message"]["chat"]["id"];
+$text = $update["message"]["text"];
+
+if ($text == "/start") {
+    $message = "به ربات فروش VPN خوش آمدید! لطفا حجم مورد نظر خود را انتخاب کنید:";
+    $keyboard = json_encode([
+        "keyboard" => [
+            ["1GB", "5GB"],
+            ["10GB", "20GB"]
+        ],
+        "resize_keyboard" => true
     ]);
-    $response = curl_exec($ch);
-    curl_close($ch);
-    
-    return $response;
+    sendMessage($chatId, $message, $keyboard);
+} elseif ($text == "1GB" || $text == "5GB" || $text == "10GB" || $text == "20GB") {
+    $message = "لطفا مبلغ را به شماره کارت زیر واریز کنید و عکس رسید را ارسال نمایید:\n1234-5678-9012-3456";
+    sendMessage($chatId, $message);
+} elseif (isset($update["message"]["photo"])) {
+    $message = "رسید شما دریافت شد. لطفا منتظر تایید ادمین باشید.";
+    sendMessage($chatId, $message);
+    $message_to_admin = "کاربر با آیدی $chatId رسید پرداخت ارسال کرده است.";
+    sendMessage($admin_id, $message_to_admin);
+} elseif ($text == "/confirm" && $chatId == $admin_id) {
+    $message = "کانفیگ VPN برای کاربر ایجاد شد و ارسال گردید.";
+    sendMessage($chatId, $message);
+    // در اینجا کد اتصال به پنل x-ui و ایجاد کانفیگ قرار می‌گیرد
+    // پس از ایجاد کانفیگ، آن را به کاربر ارسال کنید
 }
 
-// ساخت کانفیگ برای v2rayng
-function createV2rayConfig($panel_data) {
-    // اینجا بر اساس داده‌های پنل، کانفیگ v2rayng ساخته می‌شود
-    $config = [
-        "v" => "2",
-        "ps" => "v2rayng",
-        "add" => $panel_data['server'],
-        "port" => $panel_data['port'],
-        "id" => $panel_data['uuid'],
-        "aid" => "64",
-        "net" => "ws",
-        "type" => "none",
-        "host" => "example.com",
-        "path" => "/v2ray"
-    ];
-    
-    return json_encode($config, JSON_PRETTY_PRINT);
-}
-
-// ارسال پیام به تلگرام
-function sendTelegramMessage($message) {
-    global $telegram_api, $chat_id;
-    
-    $url = $telegram_api . "sendMessage?chat_id=" . $chat_id . "&text=" . urlencode($message);
+function sendMessage($chatId, $message, $keyboard = null) {
+    global $website;
+    $url = $website."/sendMessage?chat_id=".$chatId."&text=".urlencode($message);
+    if ($keyboard) {
+        $url .= "&reply_markup=".$keyboard;
+    }
     file_get_contents($url);
-}
-
-// ارسال کانفیگ به تلگرام
-function sendV2rayConfigToTelegram($config) {
-    $message = "کانفیگ v2rayng شما:\n" . $config;
-    sendTelegramMessage($message);
-}
-
-// عملکرد اصلی ربات
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $panel_url = $_POST['panel_url'];
-    $username = $_POST['username'];
-    $password = $_POST['password'];
-    
-    // دریافت داده‌های پنل
-    $panel_data = json_decode(getPanelConfig($panel_url, $username, $password), true);
-    
-    // ساخت کانفیگ v2rayng
-    $config = createV2rayConfig($panel_data);
-    
-    // ارسال کانفیگ به تلگرام
-    sendV2rayConfigToTelegram($config);
 }
 ?>
