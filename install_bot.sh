@@ -1,39 +1,46 @@
-#!/bin/bash
+<?php
+$token = "6414210268:AAEL-RZiABoMzS_QY922hOQnpXcam9OgiF0"; // توکن ربات خود را اینجا وارد کنید
+$admin_id = 5691972852; // آیدی عددی ادمین را اینجا وارد کنید
 
-# Update and install dependencies
-echo "Updating system and installing dependencies..."
-sudo apt update
-sudo apt install -y apache2 php libapache2-mod-php curl git
+$website = "https://api.telegram.org/bot".$token;
 
-# Install Composer (if needed for PHP dependencies)
-echo "Installing Composer..."
-curl -sS https://getcomposer.org/installer | php
-sudo mv composer.phar /usr/local/bin/composer
+$update = file_get_contents("php://input");
+$update = json_decode($update, TRUE);
 
-# Clone the repository (netbox.bot)
-echo "Cloning the bot repository..."
-cd /var/www/html
-sudo git clone https://github.com/yourusername/netbox.bot.git
+$chatId = $update["message"]["chat"]["id"];
+$text = $update["message"]["text"];
 
-# Set permissions
-echo "Setting permissions..."
-sudo chown -R www-data:www-data /var/www/html/netbox.bot
+if ($text == "/start") {
+    $message = "به ربات فروش VPN خوش آمدید! لطفا حجم مورد نظر خود را انتخاب کنید:";
+    $keyboard = json_encode([
+        "keyboard" => [
+            ["1GB", "5GB"],
+            ["10GB", "20GB"]
+        ],
+        "resize_keyboard" => true
+    ]);
+    sendMessage($chatId, $message, $keyboard);
+} elseif ($text == "1GB" || $text == "5GB" || $text == "10GB" || $text == "20GB") {
+    $message = "لطفا مبلغ را به شماره کارت زیر واریز کنید و عکس رسید را ارسال نمایید:\n1234-5678-9012-3456";
+    sendMessage($chatId, $message);
+} elseif (isset($update["message"]["photo"])) {
+    $message = "رسید شما دریافت شد. لطفا منتظر تایید ادمین باشید.";
+    sendMessage($chatId, $message);
+    $message_to_admin = "کاربر با آیدی $chatId رسید پرداخت ارسال کرده است.";
+    sendMessage($admin_id, $message_to_admin);
+} elseif ($text == "/confirm" && $chatId == $admin_id) {
+    $message = "کانفیگ VPN برای کاربر ایجاد شد و ارسال گردید.";
+    sendMessage($chatId, $message);
+    // در اینجا کد اتصال به پنل x-ui و ایجاد کانفیگ قرار می‌گیرد
+    // پس از ایجاد کانفیگ، آن را به کاربر ارسال کنید
+}
 
-# Ask for Telegram Bot Token
-echo "Please enter your Telegram Bot Token:"
-read BOT_TOKEN
-
-# Ask for Telegram Admin ID
-echo "Please enter your Telegram Admin ID:"
-read ADMIN_ID
-
-# Save the token and admin ID into a config file
-echo "Saving configuration..."
-echo "BOT_TOKEN=$BOT_TOKEN" > /var/www/html/netbox.bot/config.env
-echo "ADMIN_ID=$ADMIN_ID" >> /var/www/html/netbox.bot/config.env
-
-# Restart Apache
-echo "Restarting Apache..."
-sudo systemctl restart apache2
-
-echo "Installation completed successfully!"
+function sendMessage($chatId, $message, $keyboard = null) {
+    global $website;
+    $url = $website."/sendMessage?chat_id=".$chatId."&text=".urlencode($message);
+    if ($keyboard) {
+        $url .= "&reply_markup=".$keyboard;
+    }
+    file_get_contents($url);
+}
+?>
