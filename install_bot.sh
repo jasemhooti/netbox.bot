@@ -1,46 +1,61 @@
-<?php
-$token = "6414210268:AAEL-RZiABoMzS_QY922hOQnpXcam9OgiF0"; // توکن ربات خود را اینجا وارد کنید
-$admin_id = 5691972852; // آیدی عددی ادمین را اینجا وارد کنید
+#!/bin/bash
 
-$website = "https://api.telegram.org/bot".$token;
+# Update and install required packages
+sudo apt-get update
+sudo apt-get install -y php-cli php-curl git unzip
 
-$update = file_get_contents("php://input");
-$update = json_decode($update, TRUE);
+# Install Composer (if needed for dependencies)
+if ! command -v composer &> /dev/null
+then
+    echo "Installing Composer..."
+    php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+    php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+    php -r "unlink('composer-setup.php');"
+fi
 
-$chatId = $update["message"]["chat"]["id"];
-$text = $update["message"]["text"];
+# Clone your bot repository
+echo "Cloning bot repository..."
+git clone https://github.com/yourusername/your-repo.git /var/www/telegram-bot
+cd /var/www/telegram-bot
 
-if ($text == "/start") {
-    $message = "به ربات فروش VPN خوش آمدید! لطفا حجم مورد نظر خود را انتخاب کنید:";
-    $keyboard = json_encode([
-        "keyboard" => [
-            ["1GB", "5GB"],
-            ["10GB", "20GB"]
-        ],
-        "resize_keyboard" => true
-    ]);
-    sendMessage($chatId, $message, $keyboard);
-} elseif ($text == "1GB" || $text == "5GB" || $text == "10GB" || $text == "20GB") {
-    $message = "لطفا مبلغ را به شماره کارت زیر واریز کنید و عکس رسید را ارسال نمایید:\n1234-5678-9012-3456";
-    sendMessage($chatId, $message);
-} elseif (isset($update["message"]["photo"])) {
-    $message = "رسید شما دریافت شد. لطفا منتظر تایید ادمین باشید.";
-    sendMessage($chatId, $message);
-    $message_to_admin = "کاربر با آیدی $chatId رسید پرداخت ارسال کرده است.";
-    sendMessage($admin_id, $message_to_admin);
-} elseif ($text == "/confirm" && $chatId == $admin_id) {
-    $message = "کانفیگ VPN برای کاربر ایجاد شد و ارسال گردید.";
-    sendMessage($chatId, $message);
-    // در اینجا کد اتصال به پنل x-ui و ایجاد کانفیگ قرار می‌گیرد
-    // پس از ایجاد کانفیگ، آن را به کاربر ارسال کنید
-}
+# Install PHP dependencies (if you have a composer.json file)
+if [ -f "composer.json" ]; then
+    echo "Installing PHP dependencies..."
+    composer install --no-dev --optimize-autoloader
+fi
 
-function sendMessage($chatId, $message, $keyboard = null) {
-    global $website;
-    $url = $website."/sendMessage?chat_id=".$chatId."&text=".urlencode($message);
-    if ($keyboard) {
-        $url .= "&reply_markup=".$keyboard;
-    }
-    file_get_contents($url);
-}
-?>
+# Set permissions
+sudo chown -R www-data:www-data /var/www/telegram-bot
+sudo chmod -R 755 /var/www/telegram-bot
+
+# Configure webhook
+read -p "Enter your bot token: " bot_token
+read -p "Enter your server domain (e.g., https://yourserver.com): " server_domain
+
+webhook_url="$server_domain/bot.php"
+curl -F "url=$webhook_url" https://api.telegram.org/bot$bot_token/setWebhook
+
+# Create a systemd service to run the bot
+echo "Creating systemd service..."
+sudo bash -c 'cat > /etc/systemd/system/telegram-bot.service <<EOF
+[Unit]
+Description=Telegram Bot Service
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/telegram-bot
+ExecStart=/usr/bin/php /var/www/telegram-bot/bot.php
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF'
+
+# Reload systemd and start the bot service
+sudo systemctl daemon-reload
+sudo systemctl start telegram-bot
+sudo systemctl enable telegram-bot
+
+echo "Bot installation completed! Your bot is now running."
