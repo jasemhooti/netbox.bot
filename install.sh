@@ -26,7 +26,7 @@ sudo mysql -e "FLUSH PRIVILEGES;"
 
 # دانلود پروژه
 echo -e "${GREEN}Downloading NetBox Bot...${NC}"
-git clone https://github.com/YOUR_USERNAME/netbox-bot.git /opt/netbox
+git clone https://github.com/jasemhooti/netbox-bot.git /opt/netbox
 cd /opt/netbox
 
 # تنظیم فایل محیطی
