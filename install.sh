@@ -81,3 +81,13 @@ echo -e "${YELLOW}
    - ریستارت: pm2 restart all
    - وضعیت سرویس: pm2 list
 ${NC}"
+
+echo "📥 دانلود سورس کد..."
+git clone https://github.com/jasemhooti/netbox-bot.git /opt/netbox
+cd /opt/netbox
+
+echo "🚀 نصب وابستگی ها..."
+npm install
+
+echo "🎉 اجرای ربات!"
+npm start
