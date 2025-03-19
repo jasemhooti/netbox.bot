@@ -33,9 +33,15 @@ sudo mysql -e "GRANT ALL PRIVILEGES ON netbox.* TO 'netbox'@'localhost';"
 sudo mysql -e "FLUSH PRIVILEGES;"
 
 # مرحله ۴: دانلود پروژه
-echo -e "${GREEN}📥 دانلود سورس کد...${NC}"
-sudo git clone https://github.com/jasemhooti/netbox-bot.git /opt/netbox
+echo "📥 دانلود سورس کد..."
+git clone https://github.com/jasemhooti/netbox-bot.git /opt/netbox
 cd /opt/netbox
+
+echo "🚀 نصب وابستگی ها..."
+npm install
+
+echo "🎉 اجرای ربات!"
+npm start
 
 # مرحله ۵: تنظیم فایل محیطی
 echo -e "${GREEN}⚙️ ایجاد فایل تنظیمات...${NC}"
@@ -82,12 +88,3 @@ echo -e "${YELLOW}
    - وضعیت سرویس: pm2 list
 ${NC}"
 
-echo "📥 دانلود سورس کد..."
-git clone https://github.com/jasemhooti/netbox-bot.git /opt/netbox
-cd /opt/netbox
-
-echo "🚀 نصب وابستگی ها..."
-npm install
-
-echo "🎉 اجرای ربات!"
-npm start
