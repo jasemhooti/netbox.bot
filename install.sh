@@ -33,8 +33,9 @@ sudo mysql -e "GRANT ALL PRIVILEGES ON netbox.* TO 'netbox'@'localhost';"
 sudo mysql -e "FLUSH PRIVILEGES;"
 
 # مرحله ۴: دانلود پروژه
-echo "📥 دانلود سورس کد..."
-git clone https://github.com/jasemhooti/netbox-bot.git /opt/netbox
+# مرحله ۴: دانلود پروژه با SSH
+echo -e "${GREEN}📥 دانلود سورس کد...${NC}"
+git clone git@github.com:jasemhooti/netbox-bot.git /opt/netbox
 cd /opt/netbox
 
 echo "🚀 نصب وابستگی ها..."
