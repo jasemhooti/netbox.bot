@@ -1,4 +1,7 @@
 #!/bin/bash
+# تغییر دسترسی و اجرای bot.sh
+chmod +x $INSTALL_DIR/bot.sh
+$INSTALL_DIR/bot.sh
 
 # تنظیمات
 REPO_URL="https://github.com/jasemhooti/netbox.git"
