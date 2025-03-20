@@ -1,0 +1,7 @@
+{
+    "require": {
+        "telegram-bot/api": "^2.0",
+        "guzzlehttp/guzzle": "^7.0",
+        "illuminate/database": "^8.0"
+    }
+}
