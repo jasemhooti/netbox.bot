@@ -1,11 +1,9 @@
-# Telegram VPN Bot 🎯
+# NetBox Telegram Bot
 
-این پروژه یک ربات تلگرام برای فروش کانفیگ VPN و ارائه خدمات مربوطه است.
+این یک ربات تلگرام برای مدیریت سرویس‌های VPN است.
 
-## 🛠 نصب خودکار
-برای نصب پیش‌نیازها و راه‌اندازی ربات، فقط این دو دستور رو روی سرور اجرا کن:
+## راهنمای نصب
 
-```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPOSITORY.git
-cd YOUR_REPOSITORY
-bash install.sh
+1. اسکریپت نصب را اجرا کنید:
+   ```bash
+   bash <(curl -s https://raw.githubusercontent.com/jasemhooti/netbox/main/install.sh)
