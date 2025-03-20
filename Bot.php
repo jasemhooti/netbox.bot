@@ -1,30 +1,27 @@
 <?php
+require 'vendor/autoload.php';
+use Telegram\Bot\Api;
 
-require_once 'config/config.php';
-require_once 'Database.php';
+// تنظیمات پایه
+$telegram = new Api(getenv('BOT_TOKEN'));
 
-class Bot
-{
-    private $telegram;
+// هندلر اصلی
+$update = $telegram->getWebhookUpdate();
 
-    public function __construct()
-    {
-        $this->telegram = new \Longman\TelegramBot\Telegram(BOT_TOKEN, 'MyBot');
+try {
+    if ($update->getMessage()) {
+        $message = $update->getMessage();
+        $chat_id = $message->getChat()->getId();
+        $text = $message->getText();
+
+        // منو اصلی
+        if ($text == '/start') {
+            $telegram->sendMessage([
+                'chat_id' => $chat_id,
+                'text' => 'به ربات NetBox خوش آمدید!'
+            ]);
+        }
     }
-
-    public function handle()
-    {
-        $this->telegram->handle();
-    }
-
-    public function sendMessage($chat_id, $text)
-    {
-        $data = [
-            'chat_id' => $chat_id,
-            'text' => $text
-        ];
-
-        return \Longman\TelegramBot\Request::sendMessage($data);
-    }
+} catch (Exception $e) {
+    file_put_contents('error.log', $e->getMessage(), FILE_APPEND);
 }
-?>
